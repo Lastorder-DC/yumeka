@@ -1,0 +1,39 @@
+name: Splatoon3 Battlelog Uploader
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      CONFIG_TXT: ${{ secrets.CONFIG_TXT }}
+
+    name: Upload BattleLogs
+    steps:
+      - name: Checkout frozenpandaman/s3s
+        uses: actions/checkout@v3
+        with:
+          repository: 'frozenpandaman/s3s'
+          path: s3s
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+          cache: 'pip'
+          cache-dependency-path: 's3s/requirements.txt'
+      - name: Generate config.txt
+        working-directory: s3s
+        run: |
+          echo '${{ env.CONFIG_TXT }}' > config.txt
+          cat config.txt
+      - name: Install s3s requirements
+        working-directory: s3s
+        run: |
+          pip install -r requirements.txt
+      - name: Run s3s
+        working-directory: s3s
+        run: |
+          python3 s3s.py -r
